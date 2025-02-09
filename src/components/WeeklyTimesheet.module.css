@@ -1,0 +1,100 @@
+.container {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.totalHours {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4B5563;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.content {
+  margin-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+  padding-top: 1rem;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6B7280;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.date {
+  font-weight: 500;
+}
+
+.hours, .break {
+  text-align: center;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  border-top: 2px solid #E5E7EB;
+  margin-top: 0.5rem;
+} 

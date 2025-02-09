@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Facial Authentication Next.js App
 
-## Getting Started
+This is a Next.js application that implements facial recognition authentication using face-api.js and NextAuth.js.
 
-First, run the development server:
+## Features
+
+- User registration with facial recognition
+- Facial authentication login
+- Protected dashboard
+- PostgreSQL database for user data storage
+- Modern UI with Tailwind CSS
+
+## Prerequisites
+
+- Node.js 16.x or later
+- PostgreSQL database
+- Webcam access
+
+## Setup
+
+1. Clone the repository and install dependencies:
+
+```bash
+cd facial-auth-app
+npm install
+```
+
+2. Configure environment variables:
+   - Copy `.env.example` to `.env`
+   - Update the following variables:
+     - `DATABASE_URL`: Your PostgreSQL connection string
+     - `NEXTAUTH_SECRET`: Generate a secure random string
+     - `NEXTAUTH_URL`: Your application URL (http://localhost:3000 for development)
+
+3. Initialize the database:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+4. Download face-api.js models:
+   - Create a `public/models` directory
+   - Download the following models from [face-api.js models](https://github.com/justadudewhohacks/face-api.js/tree/master/weights) and place them in the `public/models` directory:
+     - `tiny_face_detector_model-weights_manifest.json`
+     - `tiny_face_detector_model-shard1`
+     - `face_landmark_68_model-weights_manifest.json`
+     - `face_landmark_68_model-shard1`
+     - `face_recognition_model-weights_manifest.json`
+     - `face_recognition_model-shard1`
+
+## Development
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Register:
+   - Visit `/register`
+   - Enter your email and name
+   - Allow camera access
+   - Look at the camera to capture your facial data
+   - Wait for registration confirmation
 
-## Learn More
+2. Login:
+   - Visit `/login`
+   - Enter your email
+   - Allow camera access
+   - Look at the camera to authenticate
+   - You'll be redirected to the dashboard upon successful authentication
 
-To learn more about Next.js, take a look at the following resources:
+## Security Considerations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Facial recognition data is stored as encrypted descriptors
+- HTTPS is recommended for production deployment
+- Session management is handled securely by NextAuth.js
+- Database credentials and secrets are protected via environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT 
