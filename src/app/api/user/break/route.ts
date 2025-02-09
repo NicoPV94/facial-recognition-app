@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { PrismaClient } from '@prisma/client';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
+
+interface BreakTimeResult {
+  breakTime: number | null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayBreaks = await prisma.$queryRaw`
+    const todayBreaks = await prisma.$queryRaw<BreakTimeResult[]>`
       WITH BreakPairs AS (
         SELECT 
           timestamp as start_time,

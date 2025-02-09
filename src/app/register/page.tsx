@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import FacialRecognition from '@/components/FacialRecognition';
 import styles from './page.module.css';
 
@@ -54,12 +55,10 @@ export default function Register() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div>
-          <h2 className={styles.title}>
-            Register with Face ID
-          </h2>
-        </div>
+      <div className={styles.mainContent}>
+        <h2 className={styles.title}>
+          Register with Face ID
+        </h2>
         
         <form className={styles.form}>
           <div className={styles.inputGroup}>
@@ -138,6 +137,22 @@ export default function Register() {
             </div>
           )}
         </form>
+
+        <div className={styles.footer}>
+          <span className={styles.footerText}>Already registered?</span>
+          {' '}
+          <Link 
+            href="/login" 
+            className={styles.link}
+          >
+            Login here
+          </Link>
+        </div>
+      </div>
+
+      <div className={styles.sideContent}>
+        <h2>Welcome to Construction Site</h2>
+        <p>Register with facial recognition for secure and easy access.</p>
       </div>
     </div>
   );

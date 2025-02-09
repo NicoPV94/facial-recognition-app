@@ -33,34 +33,33 @@ export default function Dashboard() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.content}>
-        <div className={styles.contentInner}>
-          <div className={styles.card}>
-            <div className={styles.cardContent}>
-              <div className={styles.header}>
-                <h1 className={styles.title}>
-                  Welcome, {session.user?.name || session.user?.email}!
-                </h1>
-                <button
-                  onClick={handleLogout}
-                  className={styles.logoutButton}
-                >
-                  Log Out
-                </button>
-              </div>
-              <p className={styles.welcomeText}>
-                You have successfully logged in using facial recognition.
-              </p>
-            </div>
-            <div className={styles.cardFooter}>
-              <div className={styles.userInfo}>
-                <div className={styles.userLabel}>
-                  Email: {session.user?.email}
-                </div>
-              </div>
-            </div>
+      <div className={styles.mainContent}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>
+            Welcome, {session.user?.name || session.user?.email}!
+          </h1>
+          <button
+            onClick={handleLogout}
+            className={styles.logoutButton}
+          >
+            Log Out
+          </button>
+        </div>
+
+        <p className={styles.welcomeText}>
+          You have successfully logged in using facial recognition.
+        </p>
+
+        <div className={styles.userInfo}>
+          <div className={styles.userLabel}>
+            Email: {session.user?.email}
           </div>
         </div>
+      </div>
+
+      <div className={styles.sideContent}>
+        <h2>Welcome to Construction Site</h2>
+        <p>View your account information and manage your settings.</p>
       </div>
     </div>
   );

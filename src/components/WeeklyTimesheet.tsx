@@ -25,13 +25,16 @@ export default function WeeklyTimesheet({ timesheet }: WeeklyTimesheetProps) {
   };
 
   const formatHours = (hours: number) => {
+    if (hours === undefined || hours === null || isNaN(hours)) {
+      return '0h 0m';
+    }
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
   };
 
-  const totalHours = timesheet.reduce((sum, entry) => sum + entry.hoursWorked, 0);
-  const totalBreakTime = timesheet.reduce((sum, entry) => sum + entry.breakTime, 0);
+  const totalHours = timesheet.reduce((sum, entry) => sum + (Number(entry.hoursWorked) || 0), 0);
+  const totalBreakTime = timesheet.reduce((sum, entry) => sum + (Number(entry.breakTime) || 0), 0);
 
   return (
     <div className={styles.container}>
@@ -60,8 +63,8 @@ export default function WeeklyTimesheet({ timesheet }: WeeklyTimesheetProps) {
           {timesheet.map((entry) => (
             <div key={entry.date} className={styles.row}>
               <span className={styles.date}>{formatDate(entry.date)}</span>
-              <span className={styles.hours}>{formatHours(entry.hoursWorked)}</span>
-              <span className={styles.break}>{formatHours(entry.breakTime)}</span>
+              <span className={styles.hours}>{formatHours(Number(entry.hoursWorked) || 0)}</span>
+              <span className={styles.break}>{formatHours(Number(entry.breakTime) || 0)}</span>
             </div>
           ))}
           <div className={styles.totals}>

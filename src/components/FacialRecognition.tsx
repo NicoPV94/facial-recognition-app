@@ -10,6 +10,13 @@ interface FacialRecognitionProps {
   stopRef?: React.MutableRefObject<(() => void) | undefined>;
 }
 
+interface VideoConstraints extends MediaTrackConstraints {
+  facingMode?: string;
+  width?: { ideal: number };
+  height?: { ideal: number };
+  deviceId?: { exact: string };
+}
+
 export default function FacialRecognition({ onFaceDetected, mode, stopRef }: FacialRecognitionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,22 +64,75 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
   const initializeCamera = async () => {
     try {
       setError(null);
-      console.log('Requesting camera access...');
+      console.log('Starting camera initialization...');
       
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // Check for browser compatibility in different ways
+      if (!navigator.mediaDevices) {
+        console.log('mediaDevices not found, trying to access getUserMedia directly');
+        // @ts-ignore - for older browsers
+        navigator.mediaDevices = {};
+      }
+
+      // Handle legacy versions
+      if (!navigator.mediaDevices.getUserMedia) {
+        console.log('getUserMedia not found, setting up legacy support');
+        navigator.mediaDevices.getUserMedia = function(constraints) {
+          // @ts-ignore - for older browsers
+          const getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+          
+          if (!getUserMedia) {
+            console.error('No getUserMedia implementation found');
+            return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+          }
+
+          return new Promise((resolve, reject) => {
+            getUserMedia.call(navigator, constraints, resolve, reject);
+          });
+        }
+      }
+
+      console.log('Attempting to enumerate video devices...');
+      let constraints: MediaStreamConstraints = {
         video: {
           facingMode: 'user',
-          width: { min: 360, ideal: 360, max: 360 },
-          height: { min: 270, ideal: 270, max: 270 }
-        },
+          width: { ideal: 360 },
+          height: { ideal: 270 }
+        } as VideoConstraints,
         audio: false
-      });
-      
+      };
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log('Available devices:', devices);
+        
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log('Video devices:', videoDevices);
+
+        if (videoDevices.length > 0) {
+          const frontCamera = videoDevices.find(device => 
+            device.label.toLowerCase().includes('front') || 
+            device.label.toLowerCase().includes('facetime') ||
+            device.label.toLowerCase().includes('user')
+          );
+
+          if (frontCamera) {
+            console.log('Front camera found:', frontCamera.label);
+            (constraints.video as VideoConstraints) = {
+              ...(constraints.video as VideoConstraints),
+              deviceId: { exact: frontCamera.deviceId }
+            };
+          }
+        }
+      } catch (enumError) {
+        console.log('Error enumerating devices, falling back to default constraints:', enumError);
+      }
+
+      console.log('Requesting camera with constraints:', constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log('Camera access granted');
       
       if (!videoRef.current) {
-        console.error('Video element not found during stream initialization');
-        return;
+        throw new Error('Video element not found during stream initialization');
       }
       
       videoRef.current.srcObject = stream;
@@ -80,8 +140,7 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
       // Wait for video to be ready
       await new Promise<void>((resolve, reject) => {
         if (!videoRef.current) {
-          console.error('Video element not found during metadata setup');
-          reject(new Error('Video element not found'));
+          reject(new Error('Video element not found during metadata setup'));
           return;
         }
 
@@ -128,7 +187,9 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
       }
     } catch (err) {
       console.error('Camera initialization error:', err);
-      setError(err instanceof Error ? err.message : 'Error accessing camera. Please ensure camera permissions are granted.');
+      const errorMessage = err instanceof Error ? err.message : 
+        'Error accessing camera. Please ensure camera permissions are granted and you are using a secure connection (HTTPS).';
+      setError(errorMessage);
     }
   };
 
@@ -169,36 +230,6 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
     };
   }, []);
 
-  // Initialize camera after models are loaded
-  useEffect(() => {
-    if (!isModelLoaded) return;
-
-    let isMounted = true;
-
-    const init = async () => {
-      try {
-        await initializeCamera();
-      } catch (err) {
-        console.error('Camera initialization failed:', err);
-        if (isMounted) {
-          setError('Failed to initialize camera. Please refresh and try again.');
-        }
-      }
-    };
-
-    init();
-
-    if (stopRef) {
-      stopRef.current = stopVideo;
-    }
-
-    return () => {
-      console.log('Cleaning up video resources');
-      isMounted = false;
-      stopVideo();
-    };
-  }, [isModelLoaded, mode]);
-
   const handlePlay = () => {
     if (!videoRef.current || !canvasRef.current || hasDetectedFace.current || mode === 'photo' || !isVideoReady) return;
 
@@ -217,14 +248,16 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
     }
 
     intervalRef.current = setInterval(async () => {
-      if (!video || !canvas || hasDetectedFace.current) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
+      if (!video || !canvas || hasDetectedFace.current || !video.readyState || video.readyState < 4) {
         return;
       }
 
       try {
+        // Ensure video is actually playing and has loaded metadata
+        if (video.paused || video.ended || !isVideoReady) {
+          return;
+        }
+
         const detections = await faceapi
           .detectSingleFace(video, detectorOptions.current)
           .withFaceLandmarks()
@@ -249,11 +282,50 @@ export default function FacialRecognition({ onFaceDetected, mode, stopRef }: Fac
   };
 
   useEffect(() => {
-    if (isVideoReady) {
+    if (isVideoReady && videoRef.current?.readyState === 4) {
       console.log('Video is ready, starting face detection');
       handlePlay();
     }
   }, [isVideoReady]);
+
+  // Initialize camera after models are loaded
+  useEffect(() => {
+    if (!isModelLoaded) return;
+
+    let isMounted = true;
+
+    const init = async () => {
+      try {
+        await initializeCamera();
+        
+        // Wait for video to be fully loaded
+        if (videoRef.current) {
+          videoRef.current.onloadeddata = () => {
+            if (isMounted && videoRef.current?.readyState === 4) {
+              setIsVideoReady(true);
+            }
+          };
+        }
+      } catch (err) {
+        console.error('Camera initialization failed:', err);
+        if (isMounted) {
+          setError('Failed to initialize camera. Please refresh and try again.');
+        }
+      }
+    };
+
+    init();
+
+    if (stopRef) {
+      stopRef.current = stopVideo;
+    }
+
+    return () => {
+      console.log('Cleaning up video resources');
+      isMounted = false;
+      stopVideo();
+    };
+  }, [isModelLoaded, mode]);
 
   if (isLoading) {
     return (

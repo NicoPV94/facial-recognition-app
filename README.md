@@ -82,6 +82,62 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - Session management is handled securely by NextAuth.js
 - Database credentials and secrets are protected via environment variables
 
+## Local Development with HTTPS
+
+For testing camera functionality on mobile devices in your local network, you'll need HTTPS. Follow these steps:
+
+### Setting up HTTPS for Local Development
+
+1. Generate self-signed SSL certificates:
+```bash
+mkdir -p certificates && openssl req -x509 -newkey rsa:4096 -keyout certificates/key.pem -out certificates/cert.pem -days 365 -nodes -subj "/CN=localhost"
+```
+
+2. Build the application:
+```bash
+npm run build
+```
+
+3. Start the secure server:
+```bash
+npm run start-secure
+```
+
+4. Access the application from other devices using:
+```
+https://YOUR_LOCAL_IP:3000
+```
+
+### Important Security Notes
+
+⚠️ **WARNING: Development SSL Certificates**
+- The SSL certificates in the `certificates/` directory are for **local development only**
+- Never commit these certificates to version control
+- Never use self-signed certificates in production
+- The certificates will expire after 365 days
+
+### Before Production Deployment
+
+1. Remove development SSL files:
+```bash
+rm -rf certificates server.js
+```
+
+2. Remove the `start-secure` script from `package.json`
+
+3. Use proper SSL certificates in production:
+- If using Vercel, Netlify, or similar platforms, HTTPS is handled automatically
+- If self-hosting, use certificates from a trusted provider (e.g., Let's Encrypt)
+
+### Browser Security Warnings
+
+When accessing the development server, you'll see security warnings because of the self-signed certificate:
+
+- **Chrome/Android**: Click "Advanced" → "Proceed to site (unsafe)"
+- **Safari/iOS**: Go to Settings → General → About → Certificate Trust Settings → Enable full trust for the certificate
+
+These warnings are normal in development but should never appear in production.
+
 ## License
 
 MIT 

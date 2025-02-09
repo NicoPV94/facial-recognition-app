@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { PrismaClient } from '@prisma/client';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
+
+interface TimesheetResult {
+  date: Date;
+  hoursWorked: number | null;
+  breakTime: number | null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -65,7 +71,7 @@ export async function POST(request: Request) {
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     weekStart.setHours(0, 0, 0, 0);
 
-    const weeklyTimesheet = await prisma.$queryRaw`
+    const weeklyTimesheet = await prisma.$queryRaw<TimesheetResult[]>`
       WITH PunchPairs AS (
         SELECT 
           DATE(timestamp) as work_date,

@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start -H 0.0.0.0",
+    "start-secure": "HTTPS=true next start -H 0.0.0.0",
+    "lint": "next lint",
+    "generate-data": "tsx scripts/generate-dummy-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.8.1",
@@ -28,6 +30,8 @@
     "eslint-config-next": "14.1.0",
     "postcss-import": "^16.1.0",
     "prisma": "^5.8.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
