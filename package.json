@@ -9,7 +9,7 @@
     "start-secure": "node server.js",
     "lint": "next lint",
     "generate-data": "tsx scripts/generate-dummy-data.ts",
-    "postinstall": "prisma generate"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.8.1",
