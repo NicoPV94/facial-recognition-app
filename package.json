@@ -8,7 +8,8 @@
     "start": "next start -H 0.0.0.0",
     "start-secure": "node server.js",
     "lint": "next lint",
-    "generate-data": "tsx scripts/generate-dummy-data.ts"
+    "generate-data": "tsx scripts/generate-dummy-data.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.8.1",
@@ -22,7 +23,8 @@
     "next": "14.1.0",
     "next-auth": "^4.24.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "prisma": "^5.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",
