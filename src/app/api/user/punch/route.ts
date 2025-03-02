@@ -31,6 +31,31 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check current punch state
+    const lastPunch = await prisma.punchRecord.findFirst({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+    });
+
+    // Validate punch action
+    if (action === 'in' && lastPunch?.type === 'in') {
+      return NextResponse.json(
+        { error: 'Already punched in' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'out' && (!lastPunch || lastPunch.type === 'out')) {
+      return NextResponse.json(
+        { error: 'Not punched in' },
+        { status: 400 }
+      );
+    }
+
     // Record the punch
     await prisma.punchRecord.create({
       data: {
@@ -140,6 +165,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
+      success: true,
+      action,
       hoursToday,
       hoursThisWeek,
       weeklyTimesheet,

@@ -173,4 +173,43 @@
 
 .link:hover {
   color: var(--primary-hover);
+}
+
+.registrationOptions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.optionButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: white;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 150ms;
+  cursor: pointer;
+}
+
+.optionButton:hover {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.optionButtonActive {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.optionButton .icon {
+  width: 1.5rem;
+  height: 1.5rem;
 } 

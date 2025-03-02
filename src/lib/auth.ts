@@ -2,38 +2,76 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import * as faceapi from 'face-api.js';
 import { AuthOptions } from 'next-auth';
+import { compare } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Facial Recognition',
+      name: 'Credentials',
       credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
         faceDescriptor: { label: "Face Descriptor", type: "text" },
+        isAdmin: { label: "Is Admin", type: "boolean" },
       },
       async authorize(credentials) {
-        if (!credentials?.faceDescriptor) {
-          console.error('No face descriptor provided');
+        if (!credentials) {
+          throw new Error('No credentials provided');
+        }
+
+        // Admin login with email/password
+        if (credentials.isAdmin === 'true') {
+          if (!credentials.email || !credentials.password) {
+            throw new Error('Email and password are required');
+          }
+
+          const user = await prisma.user.findUnique({
+            where: { 
+              email: credentials.email,
+              role: 'ADMIN',
+            },
+          });
+
+          if (!user || !user.password) {
+            throw new Error('Invalid email or password');
+          }
+
+          const isValid = await compare(credentials.password, user.password);
+          
+          if (!isValid) {
+            throw new Error('Invalid email or password');
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        }
+
+        // Worker login with facial recognition
+        if (!credentials.faceDescriptor) {
           throw new Error('Face descriptor is required');
         }
 
         try {
-          // Get all users with facial data
+          // Get all workers with facial data
           const users = await prisma.user.findMany({
+            where: { role: 'WORKER' },
             include: { facialData: true },
           });
 
           if (!users.length) {
-            console.error('No users found in database');
-            throw new Error('No registered users found');
+            throw new Error('No registered workers found');
           }
 
           let inputDescriptor;
           try {
             inputDescriptor = new Float32Array(JSON.parse(credentials.faceDescriptor));
           } catch (parseError) {
-            console.error('Error parsing input descriptor:', parseError);
             throw new Error('Invalid face descriptor format');
           }
 
@@ -63,6 +101,7 @@ export const authOptions: AuthOptions = {
                   id: user.id,
                   email: user.email,
                   name: user.name,
+                  role: user.role,
                 };
               }
             } catch (distanceError) {
@@ -91,12 +130,14 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.role = token.role;
       }
       return session;
     },
