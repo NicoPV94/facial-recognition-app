@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,41 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  WORKER
-  ADMIN
-}
-
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  name          String?
-  role          UserRole      @default(WORKER)
-  password      String?       // Hashed password for admin users
-  facialData    FacialData?
-  punchRecords  PunchRecord[]
-  breakRecords  BreakRecord[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  password     String?
+  role         UserRole      @default(WORKER)
+  breakRecords BreakRecord[]
+  facialData   FacialData?
+  punchRecords PunchRecord[]
 }
 
 model FacialData {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
-  descriptors   String   // Stored as JSON string of facial recognition descriptors
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  descriptors String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model PunchRecord {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  type      String   // 'in' or 'out'
+  type      String
   timestamp DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([timestamp])
@@ -53,12 +45,17 @@ model PunchRecord {
 model BreakRecord {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  type      String   // 'start' or 'end'
+  type      String
   timestamp DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([timestamp])
-} 
+}
+
+enum UserRole {
+  WORKER
+  ADMIN
+}
